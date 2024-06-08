@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "orderservice"
+version = "0.1.0"
+description = ""
+authors = ["Shahidkhan0786 <Shahidkhan0085200@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
