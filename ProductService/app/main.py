@@ -1,73 +1,87 @@
-# main.py
 from contextlib import asynccontextmanager
-from typing import Union, Optional, Annotated
-from app import settings
-from sqlmodel import Field, Session, SQLModel, create_engine
-from fastapi import FastAPI, Depends
-from pydantic import BaseModel, EmailStr
 from typing import AsyncGenerator
 
-class Product(SQLModel, table=False):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    first_name: str = Field()
-    last_name: str = Field()
-    email: str = Field(unique=True, index=True)
-    # Add password field securely (not shown for security reasons)
-    password: str = Field(default=None)  # Placeholder, replace with secure hashing
-    phone_number: Optional[str] = Field(default=None)
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 
+from app.core.config import settings
+from app.db import create_db_and_tables
+from .api.endpoints import product
+import logging
 
-# only needed for psycopg 3 - replace postgresql
-# with postgresql+psycopg in settings.DATABASE_URL
-connection_string = str(settings.DATABASE_URL).replace(
-    "postgresql", "postgresql+psycopg"
-)
+# Import Kafka startup and shutdown events
+from app.kafka.producer import startup_event as producer_startup_event, shutdown_event as producer_shutdown_event
+from app.kafka.consumer import startup_event as consumer_startup_event, shutdown_event as consumer_shutdown_event
 
-
-# recycle connections after 5 minutes
-# to correspond with the compute scale down
-engine = create_engine(
-    connection_string, connect_args={}, pool_recycle=300
-)
-
-#engine = create_engine(
-#    connection_string, connect_args={"sslmode": "require"}, pool_recycle=300
-#)
-
-
-def create_db_and_tables()->None:
-    SQLModel.metadata.create_all(engine)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 
-
-# The first part of the function, before the yield, will
-# be executed before the application starts.
-# https://fastapi.tiangolo.com/advanced/events/#lifespan-function
-# loop = asyncio.get_event_loop()
 @asynccontextmanager
-async def lifespan(app: FastAPI)-> AsyncGenerator[None, None]:
-    print("Creating tables..")
-    # task = asyncio.create_task(consume_messages('todos', 'broker:19092'))
-    # create_db_and_tables()
-    yield
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    try:
+        logger.info("Creating tables...")
+        create_db_and_tables()
+        logger.info("Tables created successfully.")
+        
+        logger.info("Starting Kafka producer...")
+        await producer_startup_event()
+        logger.info("Kafka producer started successfully.")
+        
+        logger.info("Starting Kafka consumer...")
+        await consumer_startup_event()
+        logger.info("Kafka consumer started successfully.")
+        
+        yield
+        
+    except Exception as e:
+        logger.error(f"Error during startup: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+
+    try:
+        logger.info("Stopping Kafka producer...")
+        await producer_shutdown_event()
+        logger.info("Kafka producer stopped successfully.")
+        
+        logger.info("Stopping Kafka consumer...")
+        await consumer_shutdown_event()
+        logger.info("Kafka consumer stopped successfully.")
+        
+    except Exception as e:
+        logger.error(f"Error during shutdown: {e}")
 
 
-app = FastAPI(lifespan=lifespan, title="PRODUCT SERVICE API", 
+app = FastAPI(
+    lifespan=lifespan,
+    title="Product SERVICE API",
     version="0.0.1",
     servers=[
         {
-            "url": "http://127.0.0.1:8000", # ADD NGROK URL Here Before Creating GPT Action
+            "url": "http://127.0.0.1:8000",  # ADD NGROK URL Here Before Creating GPT Action
             "description": "Development Server"
+        },
+         {
+            "url": "http://0.0.0.0:8000",  # ADD NGROK URL Here Before Creating GPT Action
+            "description": "Development Server 1"
+        },
+          {
+            "url": "http://localhost:8000",  # ADD NGROK URL Here Before Creating GPT Action
+            "description": "Development Server 2"
         }
-        ])
+    ]
+)
 
-def get_session():
-    with Session(engine) as session:
-        yield session
-
+app.include_router(product.router, prefix="/products", tags=["product"])
 
 @app.get("/")
 def read_root():
-    return {"Hello": "product Services"}
+    return {"message": "Product Service is running"}
 
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    logger.error(f"Unexpected error: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={"message": "An internal error occurred. Please try again later."},
+    )
