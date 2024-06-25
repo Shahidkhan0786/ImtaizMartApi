@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.db import create_db_and_tables
-from .api.endpoints import product
+from .api.endpoints import product,brand
 import logging
 
 # Import Kafka startup and shutdown events
@@ -57,21 +57,19 @@ app = FastAPI(
     title="Product SERVICE API",
     version="0.0.1",
     servers=[
-        {
-            "url": "http://127.0.0.1:8000",  # ADD NGROK URL Here Before Creating GPT Action
-            "description": "Development Server"
-        },
          {
             "url": "http://0.0.0.0:8000",  # ADD NGROK URL Here Before Creating GPT Action
             "description": "Development Server 1"
         },
           {
-            "url": "http://localhost:8000",  # ADD NGROK URL Here Before Creating GPT Action
+            "url": "http://localhost:8011",  # ADD NGROK URL Here Before Creating GPT Action
             "description": "Development Server 2"
         }
     ]
 )
 
+# Include the brand router
+app.include_router(brand.router, prefix="/brands", tags=["brand"])
 app.include_router(product.router, prefix="/products", tags=["product"])
 
 @app.get("/")

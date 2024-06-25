@@ -3,8 +3,8 @@ from typing import Optional
 from datetime import datetime
 
 class ProductBase(BaseModel):
-    categoryId: Optional[int] = None
-    brandId: Optional[int] = None
+    category_id: Optional[int] = None
+    brand_id: Optional[int] = None
     user_id: Optional[int] = None
     title: str
     description: str
