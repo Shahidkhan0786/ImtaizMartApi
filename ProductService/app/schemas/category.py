@@ -1,7 +1,8 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel,validator
 from datetime import datetime
 from app.enums.status_enum import StatusEnum
+from app.schemas.product import ProductRead
 
 class CategoryBase(BaseModel):
     title: str
@@ -31,3 +32,12 @@ class CategoryUpdate(BaseModel):
     description: Optional[str] = None
     image_url: Optional[str] = None
     status: Optional[StatusEnum] = None
+
+class CategoryDetail(CategoryBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    products: List[ProductRead] = []
+
+    class Config:
+        orm_mode = True

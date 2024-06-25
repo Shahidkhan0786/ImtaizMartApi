@@ -6,7 +6,7 @@ from app.db.session import get_session
 from sqlmodel import select,Session
 from app.kafka.producer import kafka_producer
 from app.proto import product_pb2
-from app.schemas.brand import BrandCreate, BrandRead, BrandUpdate
+from app.schemas.brand import BrandCreate, BrandRead, BrandUpdate,BrandDetail
 from typing import List
 
 
@@ -44,7 +44,7 @@ async def create_brand(brand: BrandCreate, db: Session = Depends(get_session)):
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
-@router.get("/{brand_id}", response_model=BrandRead)
+@router.get("/{brand_id}", response_model=BrandDetail)
 async def read_brand(brand_id: int, db: Session = Depends(get_session)):
     try:
         result = db.execute(select(Brand).where(Brand.id == brand_id))

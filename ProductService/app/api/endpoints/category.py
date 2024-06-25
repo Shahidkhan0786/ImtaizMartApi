@@ -6,7 +6,7 @@ from app.db.session import get_session
 from sqlmodel import select,Session
 from app.kafka.producer import kafka_producer
 from app.proto import product_pb2
-from app.schemas.category import CategoryCreate, CategoryRead, CategoryUpdate
+from app.schemas.category import CategoryCreate, CategoryRead, CategoryUpdate,CategoryDetail
 from typing import List
 
 
@@ -44,7 +44,7 @@ async def create_category(category: CategoryCreate, db: Session = Depends(get_se
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
-@router.get("/{category_id}", response_model=CategoryRead)
+@router.get("/{category_id}", response_model=CategoryDetail)
 async def read_category(category_id: int, db: Session = Depends(get_session)):
     try:
         result = db.execute(select(Category).where(Category.id == category_id))

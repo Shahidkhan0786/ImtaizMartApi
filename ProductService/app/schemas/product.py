@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
-
+from app.enums.status_enum import StatusEnum
 class ProductBase(BaseModel):
     category_id: Optional[int] = None
     brand_id: Optional[int] = None
@@ -23,4 +23,15 @@ class ProductRead(ProductBase):
 
     class Config:
         orm_mode = True
+
+class ProductUpdate(BaseModel):
+    category_id: Optional[int] = None
+    brand_id: Optional[int] = None
+    # user_id: Optional[int] = None
+    title: str
+    description: str
+    price: float
+    image_url: Optional[str] = None
+    quantity: Optional[int] = None
+    # rating: Optional[float] = None
 
