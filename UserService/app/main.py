@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.db import create_db_and_tables
-# from .api.endpoints import product,brand,category
+from .api.endpoints import auth
 import logging
 
 # Import Kafka startup and shutdown events
@@ -68,8 +68,8 @@ app = FastAPI(
     ]
 )
 
-# Include the brand router
-# app.include_router(brand.router, prefix="/brands", tags=["brand"])
+# Include the auth router
+app.include_router(auth.router, prefix="/auth", tags=["auth"])
 # Include the category router
 # app.include_router(category.router, prefix="/categories", tags=["category"])
 # app.include_router(product.router, prefix="/products", tags=["product"])

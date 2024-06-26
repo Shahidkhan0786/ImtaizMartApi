@@ -2,15 +2,15 @@ from pydantic import BaseModel
 from app.enums.status_enum import StatusEnum
 
 class UserCreate(BaseModel):
-    firstName: str
-    lastName: str | None = None
+    first_name: str
+    last_name: str | None = None
     email: str
     password: str
 
 class UserRead(BaseModel):
     id: int
-    firstName: str
-    lastName: str | None = None
+    first_name: str
+    last_name: str | None = None
     email: str
     status: StatusEnum
 
