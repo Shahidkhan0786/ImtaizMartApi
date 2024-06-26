@@ -35,7 +35,9 @@ from app.enums.status_enum import StatusEnum
 #         orm_mode = True
 
 class Token(BaseModel):
+    first_name: str
+    email: str
     access_token: str
     token_type: str = "bearer"
-    refresh_token: str | None = None
-    expires_in: int
+    # refresh_token: str | None = None
+    # expires_in: int

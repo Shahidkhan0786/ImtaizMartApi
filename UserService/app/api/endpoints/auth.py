@@ -58,7 +58,13 @@ async def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Sessi
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    res_data ={
+        "first_name": user.first_name,
+        "email":user.email,
+        "access_token": access_token, 
+        "token_type": "bearer"
+    }
+    return res_data
 
 @router.post("/profile", response_model=ProfileRead)
 async def create_profile(profile: ProfileCreate, db: Session = Depends(get_session)):
