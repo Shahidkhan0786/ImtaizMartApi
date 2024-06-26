@@ -9,7 +9,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from app.enums.status_enum import StatusEnum
 from datetime import timedelta
 from app.core.security import create_access_token
-from app.schemas.auth import Token
+from app.schemas.auth import Token , TokenData
 from app.core.config import settings
 
 
@@ -30,13 +30,6 @@ async def register_user(user: UserCreate, db: Session = Depends(get_session)):
     db.refresh(db_user)
     return db_user
 
-# @router.post("/login")
-# async def login_user(email: str, password: str, db: Session = Depends(get_session)):
-#     result = db.execute(select(User).where(User.email == email))
-#     db_user = result.scalar_one_or_none()
-#     if not db_user or not pwd_context.verify(password, db_user.password):
-#         raise HTTPException(status_code=400, detail="Invalid credentials")
-#     return {"message": "Login successful"}
 
 def authenticate_user(db, email: str, password: str):
     result = db.execute(select(User).where(User.email == email))
@@ -45,7 +38,7 @@ def authenticate_user(db, email: str, password: str):
         return False
     return db_user
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=TokenData)
 async def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_session)):
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
@@ -66,23 +59,3 @@ async def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Sessi
     }
     return res_data
 
-@router.post("/profile", response_model=ProfileRead)
-async def create_profile(profile: ProfileCreate, db: Session = Depends(get_session)):
-    db_profile = Profile(
-        user_id=profile.user_id,
-        city=profile.city,
-        phone=profile.phone,
-        address=profile.address
-    )
-    db.add(db_profile)
-    db.commit()
-    db.refresh(db_profile)
-    return db_profile
-
-@router.get("/profile/{user_id}", response_model=ProfileRead)
-async def read_profile(user_id: int, db: Session = Depends(get_session)):
-    result = db.execute(select(Profile).where(Profile.user_id == user_id))
-    profile = result.scalar_one_or_none()
-    if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
-    return profile
