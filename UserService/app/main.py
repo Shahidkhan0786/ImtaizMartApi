@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.db import create_db_and_tables
-from .api.endpoints import auth
+from .api.endpoints import auth,user
 import logging
 
 # Import Kafka startup and shutdown events
@@ -57,22 +57,17 @@ app = FastAPI(
     title="USER SERVICE API",
     version="0.0.1",
     servers=[
-        #  {
-        #     "url": "http://0.0.0.0:8000",  # ADD NGROK URL Here Before Creating GPT Action
-        #     "description": "Development Server 1"
-        # },
           {
             "url": "http://localhost:8010",  # ADD NGROK URL Here Before Creating GPT Action
             "description": "Development Server"
-        }
+            }
     ]
 )
 
 # Include the auth router
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
-# Include the category router
-# app.include_router(category.router, prefix="/categories", tags=["category"])
-# app.include_router(product.router, prefix="/products", tags=["product"])
+app.include_router(user.router, prefix="/user", tags=["user"])
+
 
 @app.get("/")
 def read_root():

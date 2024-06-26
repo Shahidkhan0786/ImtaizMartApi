@@ -41,6 +41,6 @@ class Token(BaseModel):
     # expires_in: int
 
 class TokenData(Token):
-    first_name: str
+    first_name: str| None
     email: str
 
