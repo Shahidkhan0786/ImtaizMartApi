@@ -18,7 +18,7 @@ class UserRead(BaseModel):
         orm_mode = True
 
 class ProfileCreate(BaseModel):
-    user_id: int
+    user_id: int |None = None
     city: str | None = None
     phone: str | None = None
     address: str | None = None

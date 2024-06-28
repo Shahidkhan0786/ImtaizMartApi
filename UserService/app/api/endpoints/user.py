@@ -13,6 +13,7 @@ router = APIRouter()
 
 @router.post("/profile", response_model=ProfileRead)
 async def create_profile(profile: ProfileCreate, current_user: User = Depends(get_current_user),db: Session = Depends(get_session)):
+    # print("In Profle create endpoint")
     db_profile = Profile(
         user_id=current_user.id,
         city=profile.city,
@@ -34,11 +35,11 @@ async def read_profile(user_id: int, db: Session = Depends(get_session)):
 
 # get login user profile 
 @router.get("/profile", response_model=Profile)
-async def get_profile(current_user: User = Depends(get_current_user)):
-    return Profile(
-        first_name=current_user.first_name,
-        last_name=current_user.last_name,
-        city=current_user.city,
-        phone=current_user.phone,
-        address=current_user.address,
-    )
+async def get_profile(current_user: User = Depends(get_current_user), db: Session = Depends(get_session)):
+    # print("Inn Proile endpoint", current_user)
+    # print("Inn Proile endpoint", current_user.id)
+    result = db.execute(select(Profile).where(Profile.user_id == current_user.id))
+    profile = result.scalar_one_or_none()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    return profile
