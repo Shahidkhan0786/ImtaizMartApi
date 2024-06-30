@@ -21,7 +21,7 @@ class UserRead(BaseModel):
 
 
 class ProfileCreate(BaseModel):
-    user_id: int |None = None
+    # user_id: int |None = None
     city: str | None = None
     phone: str | None = None
     address: str | None = None
