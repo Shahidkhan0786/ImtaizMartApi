@@ -58,7 +58,7 @@ async def login_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends(OAu
     return res_data
 
 
-@router.get("/get-user", response_model=UserRead)
+@router.get("/get-login-user", response_model=UserRead)
 async def get_user(token:Annotated[str , Depends(oauth2_scheme)] , db: Session = Depends(get_session)):
     current_user = get_auth_user(token,db)
     if not current_user:
