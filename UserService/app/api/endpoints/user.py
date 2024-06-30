@@ -3,9 +3,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from app.db.session import get_session
 from app.db.models import User, Profile
-from app.schemas.user import ProfileCreate, ProfileRead , UserDetail
+from app.schemas.user import ProfileCreate, ProfileRead , UserDetail , UserRead
 from app.enums.status_enum import StatusEnum
 from app.api.deps import get_current_user
+from typing import Annotated
 
 router = APIRouter()
 
@@ -43,3 +44,11 @@ async def get_profile(current_user: User = Depends(get_current_user), db: Sessio
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
     return profile
+
+# get user by user_id
+@router.get("/users/{user_id}", response_model=UserRead)
+async def get_user_by_id(user_id: int, db: Annotated[Session , Depends(get_session)]):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user

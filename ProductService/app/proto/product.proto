@@ -16,3 +16,5 @@ message Product {
     string created_at = 11;
     string updated_at = 12;
 }
+
+// protoc --python_out=. todo.proto
