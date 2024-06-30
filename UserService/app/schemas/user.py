@@ -17,6 +17,9 @@ class UserRead(BaseModel):
     class Config:
         orm_mode = True
 
+
+
+
 class ProfileCreate(BaseModel):
     user_id: int |None = None
     city: str | None = None
@@ -30,6 +33,17 @@ class ProfileRead(BaseModel):
     city: str | None = None
     phone: str | None = None
     address: str | None = None
+
+    class Config:
+        orm_mode = True
+
+class UserDetail(BaseModel):
+    id: int
+    first_name: str
+    last_name: str | None = None
+    email: str
+    status: StatusEnum
+    profile: ProfileRead
 
     class Config:
         orm_mode = True

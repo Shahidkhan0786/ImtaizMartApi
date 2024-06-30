@@ -32,6 +32,7 @@ async def create_product(product: ProductCreate, db: Session = Depends(get_sessi
     db.commit()
     db.refresh(db_product)
     # Serialize a message using protobuf
+    # for testing purposes 
     product_message = product_pb2.Product(
         id=db_product.id,
         category_id=db_product.category_id,
@@ -49,7 +50,7 @@ async def create_product(product: ProductCreate, db: Session = Depends(get_sessi
     await kafka_producer.send("product_topic", key=str(db_product.id).encode(), value=product_message.SerializeToString())
     return db_product
 
-# // detail 
+# detail 
 @router.get("/{product_id}", response_model=ProductRead)
 async def read_product(product_id: int, db: Session = Depends(get_session)):
     try:
@@ -62,7 +63,7 @@ async def read_product(product_id: int, db: Session = Depends(get_session)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
 
-# // list 
+# list 
 @router.get("/", response_model=List[ProductRead])
 async def list_products(skip: int = 0, limit: int = 10, db: Session = Depends(get_session)):
     try:

@@ -1,11 +1,13 @@
 from datetime import datetime, timedelta , timezone
 # from jose import JWTError, jwt
-import jwt
+from jose import JWTError, jwt
+from fastapi import Depends , HTTPException , status
 from passlib.context import CryptContext
-from sqlmodel import select
+from sqlmodel import select , Session
 from app.db.models import User
 from typing import Optional,Union
 from app.core.config import settings
+from app.db.session import get_session
 # from app.schemas.user import TokenData
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -49,3 +51,31 @@ def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None
 #     except JWTError:
 #         raise credentials_exception
 #     return token_data
+
+def get_auth_user(token: str , db: Session):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        # print("#########",payload.get("sub"))
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    user = db.query(User).filter(User.email == username).first()
+    print("user from db", user)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+  
+    return user

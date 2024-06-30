@@ -31,8 +31,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         
         # logger.info("Starting Kafka consumer...")
         # await consumer_startup_event()
-        # logger.info("Kafka consumer started successfully.")
-        
+        # logger.info("Kafka consumer started successfully.")        
         yield
         
     except Exception as e:

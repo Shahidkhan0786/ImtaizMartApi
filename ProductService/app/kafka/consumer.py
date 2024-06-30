@@ -21,13 +21,21 @@ class KafkaConsumer:
     async def stop(self):
         await self.consumer.stop()
 
-    async def consume(self):
+    # async def consume(self):
+    #     async for msg in self.consumer:
+    #         logger.info(f"Consumed message: {msg.topic}, {msg.partition}, {msg.offset}, {msg.key}, {msg.value}")
+    #         try:
+    #             product_message = product_pb2.Product()
+    #             product_message.ParseFromString(msg.value)
+    #             logger.info(f"ProductMessage: {product_message} type {type(product_message)}")
+    #             await self.consumer.commit()
+    #         except Exception as e:
+    #             logger.error(f"Failed to process message: {e}")
+    async def consume(self, message_handler):
         async for msg in self.consumer:
             logger.info(f"Consumed message: {msg.topic}, {msg.partition}, {msg.offset}, {msg.key}, {msg.value}")
             try:
-                product_message = product_pb2.Product()
-                product_message.ParseFromString(msg.value)
-                logger.info(f"ProductMessage: {product_message} type {type(product_message)}")
+                await message_handler(msg)
                 await self.consumer.commit()
             except Exception as e:
                 logger.error(f"Failed to process message: {e}")
