@@ -30,10 +30,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info("Kafka producer started successfully.")
         
         logger.info("Starting Kafka consumer...")
-        kafka_consumer.subscribe(["user_response_topic"], handle_user_response)
+        kafka_consumer.subscribe(["user_request_topic"], handle_user_response)
         kafka_consumer.subscribe(["product_event_topic"], handle_product_event)
         await consumer_startup_event()
-        
+
         logger.info("Kafka consumer started successfully.")
         
         yield
@@ -66,7 +66,7 @@ app = FastAPI(
         # },
           {
             "url": "http://localhost:8011",  # ADD NGROK URL Here Before Creating GPT Action
-            "description": "Development Server "
+            "description": "Development Server"
         }
     ]
 )

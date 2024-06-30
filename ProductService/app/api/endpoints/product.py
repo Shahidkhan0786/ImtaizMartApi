@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models import Product
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
@@ -7,8 +8,8 @@ from app.schemas.product import ProductCreate, ProductRead,ProductUpdate
 from sqlmodel import select,Session
 from app.kafka.producer import kafka_producer
 from app.proto import product_pb2 , user_pb2
-from typing import List
-
+from typing import List , Optional
+from app.kafka.handlers import user_info_store
 router = APIRouter()
 # create 
 @router.post("/", response_model=ProductRead,status_code=status.HTTP_201_CREATED)
@@ -56,13 +57,17 @@ async def read_product(product_id: int, db: Session = Depends(get_session)):
     try:
         result =  db.execute(select(Product).where(Product.id == product_id))
         product = result.scalar_one_or_none()
-        # get user detail from kafka 
-        # await kafka_producer.send("user_detail_request", key=str(product.user_id).encode(), value=str(product.user_id).encode())
-         # Retrieve user details using Kafka (pseudo-code)
-        # user_data = await get_user_details_from_kafka(product.user_id)
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
-        return product
+        # Fetch user information
+        user_info = await fetch_user_info(product.user_id)
+        if not user_info:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        return {
+            **product.dict(),
+            "owner": user_info
+        }
     except SQLAlchemyError as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
@@ -119,52 +124,18 @@ async def delete_poduct(product_id: int, db: Session = Depends(get_session)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
 
-    # kafka 
+# kafka 
 
-    # from kafka import KafkaProducer, KafkaConsumer
-# from app.proto import user_pb2  # Assuming user_pb2 contains user message schema
+# Function to fetch user info via Kafka
+async def fetch_user_info(user_id: int) -> Optional[dict]:
+    request_message = user_pb2.UserDetailRequest(user_id=user_id)
+    await kafka_producer.send("user_request_topic", key=str(user_id).encode(), value=request_message.SerializeToString())
 
-# async def get_user_details_from_kafka(user_id: int):
-    # Kafka configuration (replace with your actual settings)
-    # bootstrap_servers = ["localhost:9092"]  # List of Kafka brokers
-    # user_request_topic = "user_detail_request"  # Topic for sending user detail requests
-    # user_response_topic = "user_detail_response"  # Topic for receiving user detail responses
+    # Wait for user info to be available in user_info_store
+    for _ in range(10):  # Retry 10 times with a delay
+        if user_id in user_info_store:
+            return user_info_store.pop(user_id)
+        await asyncio.sleep(0.5)  # Wait for 0.5 second before retrying
 
-    # # Create Kafka producer
-    # producer = KafkaProducer(bootstrap_servers=bootstrap_servers)
-
-    # # Create user detail request message
-
-
-    # user_request = user_pb2.UserDetailRequest(user_id=user_id)
-    # request_bytes = user_request.SerializeToString()
-
-    # # Send user detail request to Kafka
-    # producer.send(user_request_topic, value=request_bytes)
-
-
-    # await kafka_producer.send("user_detail_request", key=str(user_id).encode(), value=request_bytes)
-    # producer.flush()  # Ensure message is sent before continuing
-
-    # Create Kafka consumer (assuming a single consumer instance)
-    # consumer = KafkaConsumer(
-    #     user_response_topic,
-    #     bootstrap_servers=bootstrap_servers,
-    #     group_id="product_detail_consumer",  # Consumer group for identification
-    #     auto_offset_reset="earliest",  # Start consuming from the beginning
-    # )
-
-    # Loop to receive user detail response (timeout can be adjusted)
-    # try:
-    #     for message in consumer.poll(timeout=1000):  # Wait for message for 1 second
-    #         user_response = user_pb2.UserDetailResponse.FromString(message.value)
-    #         if user_response.user_id == user_id:
-    #             return user_response.user.dict()  # Return user data as dictionary
-    #         else:
-    #             # Handle potential responses for other requests (if applicable)
-    #             pass
-    #     raise TimeoutError("User detail response not received within timeout")
-    # finally:
-    #     consumer.close()  # Close consumer to avoid resource leaks
-
+    raise HTTPException(status_code=404, detail="User not found")
 
