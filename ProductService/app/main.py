@@ -12,7 +12,7 @@ from app.kafka.handlers import handle_user_response, handle_product_event
 # Import Kafka startup and shutdown events
 from app.kafka.producer import startup_event as producer_startup_event, shutdown_event as producer_shutdown_event
 from app.kafka.consumer import kafka_consumer,startup_event as consumer_startup_event, shutdown_event as consumer_shutdown_event
-
+# from app.utils.register_schemas import register_schema
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -24,6 +24,17 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info("Creating tables...")
         create_db_and_tables()
         logger.info("Tables created successfully.")
+
+        # logger.info("Registering schemas...")
+        # with open('app/proto/product.proto', 'r') as file:
+        #     product_schema = file.read()
+        # with open('app/proto/user.proto', 'r') as file:
+        #     user_schema = file.read()
+        # register_schema(product_schema, 'product-value')
+        # register_schema(user_schema, 'user-value')
+        # logger.info("Schemas registered successfully.")
+
+
         
         logger.info("Starting Kafka producer...")
         await producer_startup_event()
