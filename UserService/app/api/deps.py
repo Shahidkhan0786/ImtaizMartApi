@@ -5,7 +5,8 @@ from fastapi.security import OAuth2PasswordBearer
 from app.core.config import settings
 from app.schemas.auth import TokenData
 from app.db.models import User
-
+from typing import List
+from functools import wraps
 from app.db.session import get_session
 
 # Configuration
@@ -50,3 +51,15 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     return user
 
 
+def role_required(allowed_roles: List[str]):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(current_user: TokenData = Depends(get_current_user), *args, **kwargs):
+            if not any(role in current_user.roles for role in allowed_roles):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Not enough permissions"
+                )
+            return await func(*args, **kwargs)
+        return wrapper
+    return decorator

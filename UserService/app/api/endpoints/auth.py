@@ -47,7 +47,7 @@ async def login_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends(OAu
         )
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
+        data={"sub": user.email }, expires_delta=access_token_expires
     )
     res_data ={
         "first_name": user.first_name,
@@ -56,6 +56,7 @@ async def login_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends(OAu
         "token_type": "bearer"
     }
     return res_data
+
 
 
 @router.get("/get-login-user", response_model=UserRead)

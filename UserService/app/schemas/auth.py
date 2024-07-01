@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from app.enums.status_enum import StatusEnum
-
+from typing import List
 # class UserCreate(BaseModel):
 #     first_name: str
 #     last_name: str | None = None
@@ -43,4 +43,5 @@ class Token(BaseModel):
 class TokenData(Token):
     first_name: str| None
     email: str
+    # roles: List[str] = []
 
