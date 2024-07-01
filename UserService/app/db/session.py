@@ -19,6 +19,18 @@ def get_session():
     with Session(engine) as session:
         yield session
 
+
+
+
+
+
+
+
+
+
+
+
+
 # @contextmanager
 # def get_session():
 #     """Provide a transactional scope around a series of operations."""

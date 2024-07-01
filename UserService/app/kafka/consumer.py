@@ -1,5 +1,10 @@
 import asyncio
 from aiokafka import AIOKafkaConsumer
+from sqlmodel import Session
+from typing import Annotated
+from fastapi import Depends
+from app.db.session import get_session
+from contextlib import asynccontextmanager
 import logging
 
 logger = logging.getLogger(__name__)
@@ -29,12 +34,20 @@ class KafkaConsumer:
             logger.info(f"Consumed message: {msg.topic}, {msg.partition}, {msg.offset}, {msg.key}, {msg.value}")
             handler = self.topic_handlers.get(msg.topic)
             if handler:
-                try:
-                    await handler(msg)
-                    await self.consumer.commit()
-                except Exception as e:
-                    logger.error(f"Failed to process message from topic {msg.topic}: {e}")
+                async with self.get_async_session() as session:
+                    try:
+                        await handler(msg,session)
+                        await self.consumer.commit()
+                    except Exception as e:
+                        logger.error(f"Failed to process message from topic {msg.topic}: {e}")
 
+    @asynccontextmanager
+    async def get_async_session(self) -> Session:
+        session = next(get_session())
+        try:
+            yield session
+        finally:
+            session.close()
 # Singleton instance
 kafka_consumer = KafkaConsumer(bootstrap_servers="broker:19092", group_id="my_group")
 

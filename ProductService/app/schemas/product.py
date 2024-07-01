@@ -35,3 +35,18 @@ class ProductUpdate(BaseModel):
     quantity: Optional[int] = None
     # rating: Optional[float] = None
 
+
+class User(BaseModel):
+    first_name: str
+    last_name: str | None = None
+    email: str
+
+class ProductDetail(ProductBase):
+    id: int
+    owner:User
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        orm_mode = True
+

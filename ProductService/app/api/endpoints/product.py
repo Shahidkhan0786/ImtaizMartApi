@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models import Product
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from app.db.session import get_session
-from app.schemas.product import ProductCreate, ProductRead,ProductUpdate
+from app.schemas.product import ProductCreate, ProductRead,ProductUpdate,ProductDetail
 from sqlmodel import select,Session
 from app.kafka.producer import kafka_producer
 from app.proto import product_pb2 , user_pb2
@@ -52,7 +52,7 @@ async def create_product(product: ProductCreate, db: Session = Depends(get_sessi
     return db_product
 
 # detail 
-@router.get("/{product_id}", response_model=ProductRead)
+@router.get("/{product_id}", response_model=ProductDetail)
 async def read_product(product_id: int, db: Session = Depends(get_session)):
     try:
         result =  db.execute(select(Product).where(Product.id == product_id))
@@ -64,6 +64,7 @@ async def read_product(product_id: int, db: Session = Depends(get_session)):
         if not user_info:
             raise HTTPException(status_code=404, detail="User not found")
 
+        print("Inn Endpoint", user_info)
         return {
             **product.dict(),
             "owner": user_info

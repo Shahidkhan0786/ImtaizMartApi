@@ -5,7 +5,7 @@ package user;
 // User message represents a user entity in the system
 message User {
   int32 id = 1;  
-  string username = 2; 
+  // string username = 2; 
   string email = 3;  
   string first_name = 4;  // User's first name (optional)
   string last_name = 5;  // User's last name (optional)
@@ -19,6 +19,6 @@ message UserRequest {
 
 // UserDetailResponse message contains the user details
 message UserResponse {
-  int32 user_id = 1;  // ID of the user (same as request)
+  int32 id = 1;  // ID of the user (same as request)
   User user = 2;  // User data object
 }

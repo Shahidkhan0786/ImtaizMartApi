@@ -3,6 +3,7 @@ from sqlalchemy import Column,DateTime,Enum as SQLAlchemyEnum,String
 from datetime import datetime
 from typing import Optional
 from app.enums.status_enum import StatusEnum
+from app.enums.user_type_enum import UserType
 
 class User(SQLModel, table=True):
     id: int|None = Field(default=None , primary_key=True)
@@ -10,6 +11,7 @@ class User(SQLModel, table=True):
     last_name: str | None = None
     email: str
     password: str
+    user_type: UserType = Field(default=UserType.customer,sa_column=Column(SQLAlchemyEnum(UserType)))
     status: StatusEnum = Field(default=StatusEnum.active,sa_column=Column(SQLAlchemyEnum(StatusEnum)))
     profile: Optional["Profile"] = Relationship(back_populates="user")
     created_at: Optional[datetime] = Field(default_factory=datetime.utcnow, sa_column=Column(DateTime, default=datetime.utcnow))

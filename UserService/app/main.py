@@ -61,7 +61,7 @@ app = FastAPI(
     servers=[
           {
             "url": "http://localhost:8010",  # ADD NGROK URL Here Before Creating GPT Action
-            "description": "Development Server "
+            "description": "Development Server"
             }
     ]
 )
