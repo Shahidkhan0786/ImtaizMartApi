@@ -137,6 +137,8 @@ volumes:
     driver: local
   imtaiz_product_db:
     driver: local
+  imtaiz_order_db:
+    driver: local
 networks:
   imtaiz_network:
     driver: bridge
