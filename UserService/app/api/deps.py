@@ -24,31 +24,31 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         print("#########",payload.get("sub"))
         username: str = payload.get("sub")
-        if username is None:
+        roles: list[str] = payload.get("roles", [])
+        if username is None or roles is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Could not validate credentials",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        # token_data = TokenData(email=username)
-        # token_data = username
+        
+        user = db.query(User).filter(User.email == username).first()
+        print("user from db", user)
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        token_data = TokenData(username=username, roles=roles)
+        return token_data
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    # user = User.get(email=token_data.email)
-    user = db.query(User).filter(User.email == username).first()
-    print("user from db", user)
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-  
-    return user
+    
 
 
 def role_required(allowed_roles: List[str]):

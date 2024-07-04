@@ -11,7 +11,7 @@ class User(SQLModel, table=True):
     last_name: str | None = None
     email: str
     password: str
-    user_type: UserType = Field(default=UserType.customer,sa_column=Column(SQLAlchemyEnum(UserType)))
+    user_type: Optional[UserType] = Field(default=UserType.customer,sa_column=Column(SQLAlchemyEnum(UserType)))
     status: StatusEnum = Field(default=StatusEnum.active,sa_column=Column(SQLAlchemyEnum(StatusEnum)))
     profile: Optional["Profile"] = Relationship(back_populates="user")
     created_at: Optional[datetime] = Field(default_factory=datetime.utcnow, sa_column=Column(DateTime, default=datetime.utcnow))

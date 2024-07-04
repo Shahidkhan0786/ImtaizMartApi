@@ -27,19 +27,19 @@ services:
       - imtaiz_network
     ports:
       - "8011:8000" # Expose container port 8000 to host port 8000
-  order-service:
-    build:
-      context: ./OrderService
-      dockerfile: Dockerfile.dev
-    volumes:
-      - ./OrderService:/code # Sync local development directory with the container
-    depends_on:
-      - db_order
-      - broker
-    networks:
-      - imtaiz_network
-    ports:
-      - "8012:8000" # Expose container port 8000 to host port 8000
+  # order-service:
+  #   build:
+  #     context: ./OrderService
+  #     dockerfile: Dockerfile.dev
+  #   volumes:
+  #     - ./OrderService:/code # Sync local development directory with the container
+  #   depends_on:
+  #     - db_order
+  #     - broker
+  #   networks:
+  #     - imtaiz_network
+  #   ports:
+  #     - "8012:8000" # Expose container port 8000 to host port 8000
   db_user:
     image: postgres:latest # Use the official PostgreSQL image
     restart: always
@@ -68,20 +68,20 @@ services:
       - "5434:5432"
     volumes:
       - imtaiz_product_db:/var/lib/postgresql/data
-  db_order:
-    image: postgres:latest # Use the official PostgreSQL image
-    restart: always
-    container_name: PostgresOrderCont
-    environment:
-      - POSTGRES_USER=shahidkhan
-      - POSTGRES_PASSWORD=12345
-      - POSTGRES_DB=imtaiz_order_db
-    networks:
-      - imtaiz_network
-    ports:
-      - "5434:5432"
-    volumes:
-      - imtaiz_order_db:/var/lib/postgresql/data
+  # db_order:
+  #   image: postgres:latest # Use the official PostgreSQL image
+  #   restart: always
+  #   container_name: PostgresOrderCont
+  #   environment:
+  #     - POSTGRES_USER=shahidkhan
+  #     - POSTGRES_PASSWORD=12345
+  #     - POSTGRES_DB=imtaiz_order_db
+  #   networks:
+  #     - imtaiz_network
+  #   ports:
+  #     - "5435:5432"
+  #   volumes:
+  #     - imtaiz_order_db:/var/lib/postgresql/data
   broker:
     image: apache/kafka:3.7.0
     hostname: broker
@@ -105,6 +105,15 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_LOG_DIRS: "/tmp/kraft-combined-logs"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "kafka-broker-api-versions --bootstrap-server broker:9092",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
 
   kafka-ui:
     image: provectuslabs/kafka-ui
@@ -120,18 +129,18 @@ services:
     networks:
       - imtaiz_network
     # Schema Registry Service
-  schema-registry:
-    image: confluentinc/cp-schema-registry:6.1.1
-    depends_on:
-      - broker
-    ports:
-      - "8081:8081"
-    networks:
-      - imtaiz_network
-    environment:
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: broker:19092
-      SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+  # schema-registry:
+  #   image: confluentinc/cp-schema-registry:6.1.1
+  #   depends_on:
+  #     - broker
+  #   ports:
+  #     - "8081:8081"
+  #   networks:
+  #     - imtaiz_network
+  #   environment:
+  #     SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: broker:19092
+  #     SCHEMA_REGISTRY_HOST_NAME: schema-registry
+  #     SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
 volumes:
   imtaiz_user_db:
     driver: local

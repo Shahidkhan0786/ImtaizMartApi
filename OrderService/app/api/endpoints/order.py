@@ -1,29 +1,30 @@
 from fastapi import APIRouter, Depends, HTTPException,status
-from sqlalchemy.ext.asyncio import AsyncSession
+# from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-from app.db.models import Brand
+from app.db.models import Brand , Order , OrderItem
 from app.db.session import get_session
 from sqlmodel import select,Session
 from app.kafka.producer import kafka_producer
 from app.proto import product_pb2
 from app.schemas.brand import BrandCreate, BrandRead, BrandUpdate,BrandDetail
+from app.schemas.order import OrderCreate , OrderRead
 from typing import List
 
 
 router = APIRouter()
 
 @router.post("/", response_model=BrandRead, status_code=status.HTTP_201_CREATED)
-async def create_brand(brand: BrandCreate, db: Session = Depends(get_session)):
+async def create_order(order: OrderCreate, db: Session = Depends(get_session)):
     try:
-        db_brand = Brand(
-            title=brand.title,
-            description=brand.description,
-            image_url=brand.image_url,
-            status=brand.status
+        db_order = Order(
+            title=order.title,
+            description=order.description,
+            image_url=order.image_url,
+            status=order.status
         )
-        db.add(db_brand)
+        db.add(db_order)
         db.commit()
-        db.refresh(db_brand)
+        db.refresh(db_order)
         
         # Serialize a message using protobuf
         # brand_message = brand_pb2.Brand(
@@ -36,10 +37,10 @@ async def create_brand(brand: BrandCreate, db: Session = Depends(get_session)):
         #     updated_at=db_brand.updated_at.isoformat()
         # )
         # await kafka_producer.send("brand_topic", key=str(db_brand.id).encode(), value=brand_message.SerializeToString())
-        return db_brand
+        return db_order
     except IntegrityError:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Brand with this title already exists")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Order with this title already exists")
     except SQLAlchemyError as e:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

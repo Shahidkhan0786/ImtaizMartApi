@@ -8,7 +8,7 @@ from app.core.config import settings
 from app.db import create_db_and_tables
 from .api.endpoints import product,brand,category
 import logging
-from app.kafka.handlers import handle_user_response, handle_product_event
+from app.kafka.handlers import handle_user_response, handle_validate_token_responses
 # Import Kafka startup and shutdown events
 from app.kafka.producer import startup_event as producer_startup_event, shutdown_event as producer_shutdown_event
 from app.kafka.consumer import kafka_consumer,startup_event as consumer_startup_event, shutdown_event as consumer_shutdown_event
@@ -42,7 +42,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         
         logger.info("Starting Kafka consumer...")
         kafka_consumer.subscribe(["user_response_topic"], handle_user_response)
-        # kafka_consumer.subscribe(["product_event_topic"], handle_product_event)
+        kafka_consumer.subscribe(["validate_token_response_topic"], handle_validate_token_responses)
         await consumer_startup_event()
 
         logger.info("Kafka consumer started successfully.")

@@ -42,6 +42,13 @@ class Token(BaseModel):
 
 class TokenData(Token):
     first_name: str| None
+    last_name: str| None = None
     email: str
-    # roles: List[str] = []
+    roles: List[str] = []
 
+# used by other services to validate token 
+# class TokenValidationResult():
+#     valid: bool
+#     message: str
+#     user:TokenData
+    

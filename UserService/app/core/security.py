@@ -24,6 +24,21 @@ def authenticate_user(db, email: str, password: str):
         return False
     return db_user
 
+# def authenticate_admin_user(db, email: str, password: str):
+#     result = db.execute(select(User).where(User.email == email))
+#     db_user = result.scalar_one_or_none()
+#     # if not db_user or not pwd_context.verify(password, db_user.password):
+#     #     return False
+#     if not db_user:
+#         return False
+    
+#     if not pwd_context.verify(password, db_user.password):
+#         return False
+    
+#     if db_user.user_type != 'admin':
+#         return False
+#     return db_user
+
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)

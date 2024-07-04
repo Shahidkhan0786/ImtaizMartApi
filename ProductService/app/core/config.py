@@ -15,8 +15,8 @@ from typing import Union
 
 class Settings(BaseSettings):
     DATABASE_URL: str
-    # SECRET_KEY: str
-    # ALGORITHM: str = "HS256"
+    RETRY_TIME: float
+    RETRY_COUNT: int 
     # ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     class Config:

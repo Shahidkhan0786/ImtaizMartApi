@@ -8,7 +8,7 @@ from passlib.context import CryptContext
 from fastapi.security import  OAuth2PasswordRequestForm , OAuth2PasswordBearer
 from app.enums.status_enum import StatusEnum
 from datetime import timedelta
-from app.core.security import create_access_token , authenticate_user ,get_auth_user
+from app.core.security import create_access_token , authenticate_user ,get_auth_user 
 from app.api.deps import get_current_user
 from app.schemas.auth import Token , TokenData
 from app.core.config import settings
@@ -47,7 +47,7 @@ async def login_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends(OAu
         )
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.email }, expires_delta=access_token_expires
+        data={"sub": user.email , "roles": [user.user_type]}, expires_delta=access_token_expires
     )
     res_data ={
         "first_name": user.first_name,
@@ -56,7 +56,6 @@ async def login_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends(OAu
         "token_type": "bearer"
     }
     return res_data
-
 
 
 @router.get("/get-login-user", response_model=UserRead)
@@ -69,4 +68,5 @@ async def get_user(token:Annotated[str , Depends(oauth2_scheme)] , db: Session =
             headers={"WWW-Authenticate": "Bearer"},
         )
     return current_user
+
 
