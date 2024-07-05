@@ -4,17 +4,22 @@ import uuid
 from app.db.session import get_session
 import asyncio
 # from app.db.models import User
-# from app.proto import user_pb2
+from app.schemas.token import TokenData
 from fastapi import Depends , Header , HTTPException , status
+from fastapi.security import OAuth2PasswordBearer
 from app.kafka.producer import kafka_producer
-from sqlmodel import Session,select
+from sqlmodel import Session
 from app.core.config import settings
 from app.kafka.producer import kafka_producer
 from typing import Annotated , Union
+from app.schemas.auth import TokenResponse
+from functools import wraps
 import json
 from app.kafka.handlers import token_response_store
 
 logger = logging.getLogger(__name__)
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 async def decode_validate_token(authorization:Annotated[Union[str, None], Header()] = None , db: Session = Depends(get_session)):
     
@@ -43,4 +48,13 @@ async def decode_validate_token(authorization:Annotated[Union[str, None], Header
 
 
 
-    
+
+def role_check(allowed_roles: list[str]):
+    def check_user_role(current_user: Annotated[Union[TokenResponse, None], Depends(decode_validate_token)]):
+        if current_user is None or not any(role in current_user.get("roles", []) for role in allowed_roles):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not enough permissions"
+            )
+        return current_user
+    return check_user_role

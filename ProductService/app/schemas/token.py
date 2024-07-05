@@ -5,4 +5,7 @@ class Token(BaseModel):
     token_type: str
 
 class TokenData(BaseModel):
-    username: str | None = None
+    first_name: str| None
+    last_name: str| None = None
+    email: str
+    roles: list[str] = []

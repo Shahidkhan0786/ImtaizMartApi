@@ -27,7 +27,13 @@ class KafkaConsumer:
     def subscribe(self, topics, handler):
         for topic in topics:
             self.topic_handlers[topic] = handler
-        self.consumer.subscribe(topics)
+        # self.consumer.subscribe(topics)
+            current_subscriptions = list(self.topic_handlers.keys())
+        self.consumer.subscribe(current_subscriptions)
+        logger.info(f"#######cSubscription complete. Current handlers: {self.topic_handlers}")
+
+        # logger.info(f"Subscription complete. Current handlers: {self.topic_handlers}")
+
 
     async def consume(self):
         async for msg in self.consumer:

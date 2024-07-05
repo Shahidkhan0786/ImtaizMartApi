@@ -66,8 +66,9 @@ async def handle_validate_token(msg, db: Session):
         await kafka_producer.send("validate_token_response_topic", key=msg.key, value=token_response.SerializeToString())
 
 async def handle_user_request(msg, session: Session):
-    user_id = int(msg.key.decode())
+    print("########## IN HANDLE USER REQUEST HANDLER CONSUMER #################################")
     logger.info(f"Handling user request message: {msg}")
+    user_id = int(msg.key.decode())
     
     try:
         user_request = user_pb2.UserRequest()

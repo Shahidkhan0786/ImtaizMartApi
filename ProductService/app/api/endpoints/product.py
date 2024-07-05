@@ -1,4 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status , Header
+from fastapi.security import OAuth2PasswordBearer
+
 import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models import Product
@@ -10,19 +12,17 @@ from sqlmodel import select,Session
 from app.kafka.producer import kafka_producer
 from app.proto import product_pb2 , user_pb2
 from typing import List , Optional  , Annotated , Union
-from app.api.deps import decode_validate_token
+from app.api.deps import role_check
 from app.kafka.handlers import user_info_store
 router = APIRouter()
 
 
 # create 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="http://localhost:8010/auth/login")
+
 @router.post("/", response_model=ProductRead,status_code=status.HTTP_201_CREATED)
-async def create_product(product: ProductCreate, db: Session = Depends(get_session) , current_user:Annotated[Union[TokenResponse , None] , Depends(decode_validate_token)]= None):
-    
-    # result = await db.execute(select(Product).where(Product.title == product.title))
-    # db_product = result.scalar_one_or_none()
-    # if db_product:
-    #     raise HTTPException(status_code=400, detail="Product already registered")
+async def create_product(product: ProductCreate, db: Session = Depends(get_session) ,current_user: Annotated[Union[TokenResponse, None], Depends(role_check(['admin']))] = None, token: Annotated[Union[str,None], Depends(oauth2_scheme)]=None):
+
     print(current_user)
     db_product = Product(
         category_id=product.category_id,
@@ -91,8 +91,8 @@ async def list_products(skip: int = 0, limit: int = 10, db: Session = Depends(ge
 
 
 # update
-@router.put("/{category_id}", response_model=ProductRead)
-async def update_product(product_id: int, product_update: ProductUpdate, db: Session = Depends(get_session)):
+@router.put("/{product_id}", response_model=ProductRead)
+async def update_product(product_id: int, product_update: ProductUpdate, db: Session = Depends(get_session) , current_user: Annotated[Union[TokenResponse, None], Depends(role_check(['admin']))] = None):
     try:
         result = db.execute(select(Product).where(Product.id == product_id))
         product = result.scalar_one_or_none()
@@ -116,7 +116,7 @@ async def update_product(product_id: int, product_update: ProductUpdate, db: Ses
 
 # del 
 @router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_poduct(product_id: int, db: Session = Depends(get_session)):
+async def delete_product(product_id: int, db: Session = Depends(get_session) , current_user: Annotated[Union[TokenResponse, None], Depends(role_check(['admin']))] = None):
     try:
         result = db.execute(select(Product).where(Product.id == product_id))
         product = result.scalar_one_or_none()
@@ -125,7 +125,6 @@ async def delete_poduct(product_id: int, db: Session = Depends(get_session)):
 
         db.delete(product)
         db.commit()
-        return
     except SQLAlchemyError as e:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

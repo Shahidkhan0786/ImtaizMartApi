@@ -56,11 +56,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 app = FastAPI(
     lifespan=lifespan,
-    title="USER SERVICE API",
+    title="INVENTORY SERVICE API",
     version="0.0.1",
     servers=[
           {
-            "url": "http://localhost:8010",  # ADD NGROK URL Here Before Creating GPT Action
+            "url": "http://localhost:8012",  # ADD NGROK URL Here Before Creating GPT Action
             "description": "Development Server "
             }
     ]

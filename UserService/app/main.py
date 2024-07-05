@@ -32,9 +32,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info("Kafka producer started successfully.")
         
         logger.info("Starting Kafka consumer...")
+        await consumer_startup_event()
         kafka_consumer.subscribe(["user_request_topic"], handle_user_request)
         kafka_consumer.subscribe(["validate_token_topic"], handle_validate_token)
-        await consumer_startup_event()
         logger.info("Kafka consumer started successfully.")        
         yield
         

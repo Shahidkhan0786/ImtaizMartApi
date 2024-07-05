@@ -52,17 +52,25 @@ async def handle_validate_token_responses(msg):
 
     
 async def handle_user_response(msg):
-    print("Handle User response")
-    user_message = user_pb2.UserDetailResponse()
-    user_message.ParseFromString(msg.value)
-    print(user_message)
-    user_info_store[user_message.id] = {
-        "id": user_message.id,
-        "first_name": user_message.user.first_name,
-        "last_name": user_message.user.last_name,
-        "email": user_message.user.email
-    }
-    logger.info(f"Processed user response message: {user_info_store[user_message.id]}")
+    try:
+        logger.info("Handle User response")
+        user_message = user_pb2.UserDetailResponse()
+        user_message.ParseFromString(msg.value)
+        logger.debug(f"Parsed user message: {user_message}")
+        
+        user_info_store[user_message.id] = {
+            "id": user_message.id,
+            "first_name": user_message.user.first_name,
+            "last_name": user_message.user.last_name,
+            "email": user_message.user.email
+        }
+        
+        logger.info(f"Processed user response message: {user_info_store[user_message.id]}")
+    
+    except Exception as e:
+        logger.error(f"Error processing user response message: {e}")
+        logger.debug(f"Failed message details: {msg}")
+
 
 async def handle_product_event(msg):
     product_message = product_pb2.Product()

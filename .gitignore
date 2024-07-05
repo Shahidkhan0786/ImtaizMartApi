@@ -8,3 +8,7 @@
 /UserService/app/db/__pycache__
 OrderService/.env
 /ProductService/app/__pycache__
+*.pyc
+*.pyc
+*.pyc
+*.pyc

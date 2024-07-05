@@ -4,28 +4,24 @@ from datetime import datetime
 from typing import Optional
 from app.enums.status_enum import StatusEnum
 
-class User(SQLModel, table=True):
-    id: int|None = Field(default=None , primary_key=True)
-    first_name: str
-    last_name: str | None = None
-    email: str
-    password: str
-    status: StatusEnum = Field(default=StatusEnum.active,sa_column=Column(SQLAlchemyEnum(StatusEnum)))
-    profile: Optional["Profile"] = Relationship(back_populates="user")
-    created_at: Optional[datetime] = Field(default_factory=datetime.utcnow, sa_column=Column(DateTime, default=datetime.utcnow))
-    updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow, sa_column=Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow))
+class StockLevel(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    product_id: Optional[int] = Field(default=None)
+    quantity: int = Field(default=0)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
     class Config:
         orm_mode = True
+        
+
+class InventoryUpdate(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    product_id: int = Field(default=None)
+    change: int  # Positive for addition, negative for removal
+    updated_by: str  # User who made the update
+    reason: str  # Reason for the update
+    created_at: datetime = Field(default_factory=datetime.utcnow)
     
-class Profile(SQLModel , table=True):
-    id: int | None = Field(default=None , primary_key=True)
-    user_id: int = Field(foreign_key="user.id")
-    city: str | None = None
-    phone: str | None = None
-    address: str | None = Field(default=None, sa_column=Column(String(255)))
-    user: Optional[User] = Relationship(back_populates="profile")
-    created_at: Optional[datetime] = Field(default_factory=datetime.utcnow, sa_column=Column(DateTime, default=datetime.utcnow))
-    updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow, sa_column=Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow))
     class Config:
         orm_mode = True
         

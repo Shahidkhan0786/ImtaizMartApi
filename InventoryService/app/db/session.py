@@ -18,25 +18,3 @@ engine = create_engine(
 def get_session():
     with Session(engine) as session:
         yield session
-
-# @contextmanager
-# def get_session():
-#     """Provide a transactional scope around a series of operations."""
-#     session = Session(engine)
-#     try:
-#         yield session
-#         session.commit()
-#     except Exception as e:
-#         session.rollback()
-#         logger.error(f"Session rollback due to exception: {e}")
-#         raise
-#     finally:
-#         session.close()
-
-# async session 
-# SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=AsyncSession)
-
-# @asynccontextmanager
-# async def get_session():
-#     async with SessionLocal() as session:
-#         yield session
