@@ -7,7 +7,6 @@ import asyncio
 from app.schemas.token import TokenData
 from fastapi import Depends , Header , HTTPException , status
 from fastapi.security import OAuth2PasswordBearer
-from app.kafka.producer import kafka_producer
 from sqlmodel import Session
 from app.core.config import settings
 from app.kafka.producer import kafka_producer
