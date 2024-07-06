@@ -1,4 +1,4 @@
-from .models import User, Profile
+from .models import Inventory, Stock
 from sqlmodel import SQLModel
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException

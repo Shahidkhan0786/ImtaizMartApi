@@ -27,6 +27,20 @@ services:
       - imtaiz_network
     ports:
       - "8011:8000" # Expose container port 8000 to host port 8000
+  inventory-service:
+    build:
+      context: ./InventoryService
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./InventoryService:/code # Sync local development directory with the container
+    depends_on:
+      - db_inventory
+      - broker
+    networks:
+      - imtaiz_network
+    ports:
+      - "8012:8000" # Expose container port 8000 to host port 8000
+ 
   # order-service:
   #   build:
   #     context: ./OrderService
@@ -39,7 +53,7 @@ services:
   #   networks:
   #     - imtaiz_network
   #   ports:
-  #     - "8012:8000" # Expose container port 8000 to host port 8000
+  #     - "8013:8000" # Expose container port 8000 to host port 8000
   db_user:
     image: postgres:latest # Use the official PostgreSQL image
     restart: always
@@ -68,20 +82,20 @@ services:
       - "5434:5432"
     volumes:
       - imtaiz_product_db:/var/lib/postgresql/data
-  # db_order:
-  #   image: postgres:latest # Use the official PostgreSQL image
-  #   restart: always
-  #   container_name: PostgresOrderCont
-  #   environment:
-  #     - POSTGRES_USER=shahidkhan
-  #     - POSTGRES_PASSWORD=12345
-  #     - POSTGRES_DB=imtaiz_order_db
-  #   networks:
-  #     - imtaiz_network
-  #   ports:
-  #     - "5435:5432"
-  #   volumes:
-  #     - imtaiz_order_db:/var/lib/postgresql/data
+  db_inventory:
+    image: postgres:latest # Use the official PostgreSQL image
+    restart: always
+    container_name: PostgresInventoryCont
+    environment:
+      - POSTGRES_USER=shahidkhan
+      - POSTGRES_PASSWORD=12345
+      - POSTGRES_DB=imtaiz_inventory_db
+    networks:
+      - imtaiz_network
+    ports:
+      - "5435:5432"
+    volumes:
+      - imtaiz_inventory_db:/var/lib/postgresql/data
   broker:
     image: apache/kafka:3.7.0
     hostname: broker
@@ -147,6 +161,8 @@ volumes:
   imtaiz_product_db:
     driver: local
   imtaiz_order_db:
+    driver: local
+  imtaiz_inventory_db:
     driver: local
 networks:
   imtaiz_network:

@@ -6,13 +6,14 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.db import create_db_and_tables
-from .api.endpoints import auth,user
+from .api.endpoints import inventory,stock
 import logging
 
 # Import Kafka startup and shutdown events
 from app.kafka.producer import startup_event as producer_startup_event, shutdown_event as producer_shutdown_event
 from app.kafka.consumer import  kafka_consumer, startup_event as consumer_startup_event, shutdown_event as consumer_shutdown_event
-from app.kafka.handlers import handle_user_request
+from app.kafka.handlers import handle_user_response, handle_validate_token_responses
+
 
 
 logging.basicConfig(level=logging.INFO)
@@ -32,7 +33,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info("Kafka producer started successfully.")
         
         logger.info("Starting Kafka consumer...")
-        kafka_consumer.subscribe(["user_request_topic"], handle_user_request)
+        kafka_consumer.subscribe(["user_response_topic"], handle_user_response)
+        kafka_consumer.subscribe(["validate_token_response_topic"], handle_validate_token_responses)
         await consumer_startup_event()
         logger.info("Kafka consumer started successfully.")        
         yield
@@ -61,19 +63,19 @@ app = FastAPI(
     servers=[
           {
             "url": "http://localhost:8012",  # ADD NGROK URL Here Before Creating GPT Action
-            "description": "Development Server "
+            "description": "Development Server"
             }
     ]
 )
 
 # Include the auth router
-app.include_router(auth.router, prefix="/auth", tags=["auth"])
-app.include_router(user.router, prefix="/user", tags=["user"])
+app.include_router(inventory.router, prefix="/inventory", tags=["inventory"])
+app.include_router(stock.router, prefix="/stock", tags=["stock"])
 
 
 @app.get("/")
 def read_root():
-    return {"message": "Product Service is running"}
+    return {"message": "Inventory Service is running"}
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):

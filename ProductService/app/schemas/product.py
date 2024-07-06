@@ -5,7 +5,7 @@ from app.enums.status_enum import StatusEnum
 class ProductBase(BaseModel):
     category_id: Optional[int] = None
     brand_id: Optional[int] = None
-    user_id: Optional[int] = None
+    # user_id: Optional[int] = None
     title: str
     description: str
     price: float
