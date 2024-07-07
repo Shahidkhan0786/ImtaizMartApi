@@ -83,10 +83,10 @@ app = FastAPI(
 )
 
 # Include the brand router
-app.include_router(brand.router, prefix="/brands", tags=["brand"])
+app.include_router(brand.router, prefix="/product/brands", tags=["brand"])
 # Include the category router
-app.include_router(category.router, prefix="/categories", tags=["category"])
-app.include_router(product.router, prefix="/products", tags=["product"])
+app.include_router(category.router, prefix="/product/categories", tags=["category"])
+app.include_router(product.router, prefix="/product/products", tags=["product"])
 
 @app.get("/")
 def read_root():

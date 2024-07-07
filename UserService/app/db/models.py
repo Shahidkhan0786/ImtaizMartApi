@@ -32,4 +32,16 @@ class Profile(SQLModel , table=True):
         orm_mode = True
         
 
-
+# class ShippingAddress(SQLModel , table=True):
+#     id: int | None = Field(default=None , primary_key=True)
+#     user_id: int = Field(foreign_key="user.id")
+#     country: str | None = None
+#     state: str | None = None
+#     zip_code: str | None = None
+#     city: str | None = None
+#     address: str | None = Field(default=None, sa_column=Column(String(255)))
+#     # user: Optional[User] = Relationship(back_populates="profile")
+#     created_at: Optional[datetime] = Field(default_factory=datetime.utcnow, sa_column=Column(DateTime, default=datetime.utcnow))
+#     updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow, sa_column=Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow))
+#     class Config:
+#         orm_mode = True

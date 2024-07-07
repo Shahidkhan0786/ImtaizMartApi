@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package inventory;
+
+// StockLevel message definition
+message StockLevel {
+    //int32 id = 1;           // Unique ID for the stock level entry
+    int32 product_id = 2;   // ID of the product
+    int32 quantity = 3;     // Quantity in stock
+    // string created_at = 4;  // Timestamp of when the entry was created
+   //  string updated_at = 5;  // Timestamp of when the entry was last updated
+}
+
+// InventoryUpdate message definition
+message InventoryUpdate {
+    int32 id = 1;           // Unique ID for the inventory update entry
+    int32 product_id = 2;   // ID of the product
+    int32 change = 3;       // Positive for addition, negative for removal
+    string updated_by = 4;  // User who made the update
+    string reason = 5;      // Reason for the update
+    string created_at = 6;  // Timestamp of when the entry was created
+}
