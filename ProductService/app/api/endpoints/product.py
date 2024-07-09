@@ -161,7 +161,7 @@ async def fetch_user_info(user_id: int) -> Optional[dict]:
     await kafka_producer.send("user_request_topic", key=str(user_id).encode(), value=request_message.SerializeToString())
 
     # Wait for user info to be available in user_info_store
-    for _ in range(10):  # Retry 10 times with a delay
+    for _ in range(15):  # Retry 10 times with a delay
         if user_id in user_info_store:
             return user_info_store.pop(user_id)
         await asyncio.sleep(0.5)  # Wait for 0.5 second before retrying

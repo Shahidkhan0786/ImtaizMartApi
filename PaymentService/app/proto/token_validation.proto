@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package tokenvalidation;
+
+// Message for user details
+message User {
+    int32 id = 1;  
+    string first_name = 2;
+    string last_name = 3;
+    string email = 4;
+    // Add other user fields as needed
+}
+
+// Message for token validation result
+message ValidationResult {
+    bool valid = 1;
+    string message = 2;
+    UserData data = 3;
+}
+
+// Message for user data returned with validation result
+message UserData {
+    User user = 1;
+    repeated string roles = 2;
+}
+
+// Wrapper message for handling token validation responses
+message ValidateTokenResponse {
+    ValidationResult validation_result = 1;
+}

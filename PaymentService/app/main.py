@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.db import create_db_and_tables
-from .api.endpoints import order
+# from .api.endpoints import order
 import logging
 
 # Import Kafka startup and shutdown events
@@ -58,18 +58,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 app = FastAPI(
     lifespan=lifespan,
-    title="Order SERVICE API",
+    title="Payment SERVICE API",
     version="0.0.1",
     servers=[
           {
-            "url": "http://localhost:8013",  # ADD NGROK URL Here Before Creating GPT Action
+            "url": "http://localhost:8014",  # ADD NGROK URL Here Before Creating GPT Action
             "description": "Development Server"
             }
     ]
 )
 
 # Include the auth router
-app.include_router(order.router, prefix="/order", tags=["order"])
+# app.include_router(order.router, prefix="/order", tags=["order"])
 # app.include_router(stock.router, prefix="/stock", tags=["stock"])
 
 
