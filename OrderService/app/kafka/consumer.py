@@ -39,7 +39,7 @@ class KafkaConsumer:
                     logger.error(f"Failed to process message from topic {msg.topic}: {e}")
 
 # Singleton instance
-kafka_consumer = KafkaConsumer(bootstrap_servers="broker:19092", group_id="my_group")
+kafka_consumer = KafkaConsumer(bootstrap_servers="broker:19092", group_id="order_service_group")
 
 # To use the consumer in FastAPI app startup and shutdown events
 async def startup_event():

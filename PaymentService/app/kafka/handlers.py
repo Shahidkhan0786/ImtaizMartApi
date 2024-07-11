@@ -5,6 +5,7 @@ import stripe
 from app.proto.order_pb2 import Order
 from app.proto.payment_pb2 import PaymentResponse
 from app.core.config import settings
+from app.kafka.producer import kafka_producer
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -79,61 +80,62 @@ async def handle_user_response(msg):
 #     product_message.ParseFromString(msg.value)
 #     logger.info(f"Processed product event message: {product_message}")
 
-# async def handle_payment_request(msg):
-#     try:
-#         logger.info("Handle payment request")
+async def handle_payment_request(msg):
+    try:
+        logger.info("Handle payment request")
 
-#         # Parse the incoming order message
-#         order_message = Order()
-#         order_message.ParseFromString(msg.value)
-#         logger.debug(f"Parsed order message: {order_message}")
+        # Parse the incoming order message
+        order_message = Order()
+        order_message.ParseFromString(msg.value)
+        logger.debug(f"Parsed order message: {order_message}")
 
-#         # Extract order details
-#         order_id = order_message.order_id
-#         customer_email = order_message.customer_email
-#         total_amount = int(order_message.total_amount * 100)  # Convert to cents
-#         items = order_message.items
+        # Extract order details
+        order_id = order_message.order_id
+        customer_email = order_message.customer_email
+        total_amount = int(order_message.total_amount * 100)  # Convert to cents
+        items = order_message.items
+        logger.info(f"Order message {order_message}")
+        logger.info(f"Items {order_message.items}")
+        # Create Stripe checkout session
+        line_items = [
+            {
+                'price_data': {
+                    'currency': settings.CURRENCY,
+                    'product_data': {'name': item.title},
+                    'unit_amount': int(item.price * 100),
+                },
+                'quantity': item.quantity,
+            } for item in items
+        ]
 
-#         # Create Stripe checkout session
-#         line_items = [
-#             {
-#                 'price_data': {
-#                     'currency': 'usd',
-#                     'product_data': {'name': item.title},
-#                     'unit_amount': int(item.price * 100),
-#                 },
-#                 'quantity': item.quantity,
-#             } for item in items
-#         ]
+        try:
+            session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=line_items,
+                mode='payment',
+                success_url='https://example.com/success',
+                cancel_url='https://example.com/cancel',
+                customer_email=customer_email,
+            )
+            logger.info(f"Created Stripe session id : {session.id}")
+            logger.info(f"Created Stripe session url : {session.url}")
+            # Create a payment response message
+            payment_response = PaymentResponse(
+                order_id=order_id,
+                payment_url=session.url,
+                session_id=session.id,
+                status='created'
+            )
 
-#         try:
-#             session = stripe.checkout.Session.create(
-#                 payment_method_types=['card'],
-#                 line_items=line_items,
-#                 mode='payment',
-#                 success_url='https://example.com/success',
-#                 cancel_url='https://example.com/cancel',
-#                 customer_email=customer_email,
-#             )
-#             logger.info(f"Created Stripe session: {session.id}")
+            # Serialize and send the response message
+            serialized_payment_response = payment_response.SerializeToString()
+            await kafka_producer.send("payment_response_topic", key=str(order_id).encode(), value=serialized_payment_response)
+            logger.info(f"Sent payment response for order ID {order_id}")
 
-#             # Create a payment response message
-#             payment_response = PaymentResponse(
-#                 order_id=order_id,
-#                 payment_url=session.url,
-#                 session_id=session.id,
-#                 status='created'
-#             )
+        except stripe.error.StripeError as e:
+            logger.error(f"Stripe error: {e}")
+            raise e
 
-#             # Serialize and send the response message
-#             serialized_payment_response = payment_response.SerializeToString()
-#             producer.send("payment_response_topic", key=str(order_id).encode(), value=serialized_payment_response)
-#             logger.info(f"Sent payment response for order ID {order_id}")
-
-#         except stripe.error.StripeError as e:
-#             logger.error(f"Stripe error: {e}")
-#             raise e
-
-#     except Exception as e:
-#         logger.error(f"Error processing payment request message: {e}")
-#         logger.debug(f"Failed message details: {msg}")
+    except Exception as e:
+        logger.error(f"Error processing payment request message: {e}")
+        logger.debug(f"Failed message details: {msg}")

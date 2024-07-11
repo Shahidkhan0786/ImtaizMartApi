@@ -77,6 +77,7 @@ async def create_order(order: OrderCreate, db: Session = Depends(get_session), c
         for item in db_order_items:
             order_item = order_pb2.OrderItem(
                 product_id=item.product_id,
+                title=item.title,
                 quantity=item.quantity,
                 price=item.item_price
             )

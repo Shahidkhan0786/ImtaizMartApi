@@ -27,7 +27,7 @@ async def decode_validate_token(authorization:Annotated[Union[str, None], Header
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authorization header missing")
     
     token = authorization.split(" ")[1] if authorization.startswith("Bearer ") else authorization
-
+   
     
     if not token:
         logger.warning("Token is missing in the message")
@@ -35,16 +35,15 @@ async def decode_validate_token(authorization:Annotated[Union[str, None], Header
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token is not valid")
     
     request_id = str(uuid.uuid4())
-
     await kafka_producer.send("validate_token_topic", key=request_id.encode(),value=str(token).encode())
-
     # Wait for user info to be available in token_response_store
     for _ in range(settings.RETRY_COUNT):  # Retry  times with a delay
         if request_id in token_response_store:
-            # print( token_response_store.pop(request_id))
+            logger.warning(f"VALUEEE : {token_response_store}")
             return token_response_store.pop(request_id)
+        logger.warning(f"No Object added in token_response_store by handler")
         await asyncio.sleep(settings.RETRY_TIME)  # Wait for second before retrying
-
+    logger.warning(f"No Object added in token_response_store by handler timeout")
     raise HTTPException(status_code=401, detail="Unauthorized")
 
 
@@ -53,7 +52,7 @@ async def decode_validate_token(authorization:Annotated[Union[str, None], Header
 def role_check(allowed_roles: list[str]):
     
     def check_user_role(current_user: Annotated[Union[TokenResponse, None], Depends(decode_validate_token)]):
-        # logger.debug(f"CURRENT USER { current_user}")
+        logger.warning(f"CURRENT USER { current_user}")
         if current_user is None or not any(role in current_user.get("roles", []) for role in allowed_roles):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

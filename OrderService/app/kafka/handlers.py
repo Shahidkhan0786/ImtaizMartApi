@@ -13,7 +13,7 @@ token_response_store = {}
 async def handle_validate_token_responses(msg):
     try:
         logger.info("Handling validate token response...")
-        
+        print("Handling validate token response......")
          # Log the raw message content
         logger.debug(f"Raw message received: key {msg.key.decode()} value {msg.value}")
         print(f"Raw message received: {msg.value}")
@@ -39,6 +39,7 @@ async def handle_validate_token_responses(msg):
                 "token_valid": validation_result.valid,
                 "token_message": validation_result.message,
             }
+            logger.warning(f"In Handler { token_response_store}")
             return
         else:
             logger.warning(f"Token validation failed: {validation_result.message}")

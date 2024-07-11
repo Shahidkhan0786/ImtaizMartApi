@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0border.proto\x12\x05order\"h\n\x05Order\x12\x10\n\x08order_id\x18\x01 \x01(\x05\x12\x16\n\x0e\x63ustomer_email\x18\x02 \x01(\t\x12\x14\n\x0ctotal_amount\x18\x03 \x01(\x02\x12\x1f\n\x05items\x18\x04 \x03(\x0b\x32\x10.order.OrderItem\"@\n\tOrderItem\x12\x12\n\nproduct_id\x18\x01 \x01(\x05\x12\x10\n\x08quantity\x18\x02 \x01(\x05\x12\r\n\x05price\x18\x03 \x01(\x02\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0border.proto\x12\x05order\"h\n\x05Order\x12\x10\n\x08order_id\x18\x01 \x01(\x05\x12\x16\n\x0e\x63ustomer_email\x18\x02 \x01(\t\x12\x14\n\x0ctotal_amount\x18\x03 \x01(\x02\x12\x1f\n\x05items\x18\x04 \x03(\x0b\x32\x10.order.OrderItem\"O\n\tOrderItem\x12\x12\n\nproduct_id\x18\x01 \x01(\x05\x12\r\n\x05title\x18\x02 \x01(\t\x12\x10\n\x08quantity\x18\x03 \x01(\x05\x12\r\n\x05price\x18\x04 \x01(\x02\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'order_pb2', globals())
@@ -23,5 +23,5 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _ORDER._serialized_start=22
   _ORDER._serialized_end=126
   _ORDERITEM._serialized_start=128
-  _ORDERITEM._serialized_end=192
+  _ORDERITEM._serialized_end=207
 # @@protoc_insertion_point(module_scope)

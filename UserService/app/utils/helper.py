@@ -1,4 +1,5 @@
-from jose import JWTError, jwt
+from jose import JWTError
+import jwt
 from fastapi import Depends, HTTPException, status
 from sqlmodel import Session, select
 from fastapi.security import OAuth2PasswordBearer
@@ -57,6 +58,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
     
     
 def decode_validate_token(token:str , db:Session):
+    logger.warning("In decode_validate_token FUNCTION")
     try:
         # Decode the JWT token
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])

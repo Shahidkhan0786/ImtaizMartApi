@@ -12,7 +12,7 @@ import logging
 # Import Kafka startup and shutdown events
 from app.kafka.producer import startup_event as producer_startup_event, shutdown_event as producer_shutdown_event
 from app.kafka.consumer import  kafka_consumer, startup_event as consumer_startup_event, shutdown_event as consumer_shutdown_event
-from app.kafka.handlers import handle_user_response, handle_validate_token_responses
+from app.kafka.handlers import handle_user_response, handle_validate_token_responses,handle_payment_request
 
 
 
@@ -35,6 +35,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info("Starting Kafka consumer...")
         kafka_consumer.subscribe(["user_response_topic"], handle_user_response)
         kafka_consumer.subscribe(["validate_token_response_topic"], handle_validate_token_responses)
+        kafka_consumer.subscribe(["payment_request_topic"], handle_payment_request)
         await consumer_startup_event()
         logger.info("Kafka consumer started successfully.")        
         yield
