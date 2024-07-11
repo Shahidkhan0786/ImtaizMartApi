@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package payment;
+
+// PaymentResponse message
+message PaymentResponse {
+    int32 order_id = 1;
+    string payment_url = 2;
+    string session_id = 3;
+    string status = 4;  // e.g., 'created', 'failed'
+}

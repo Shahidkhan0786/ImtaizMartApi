@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException , status
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlmodel import Session, select
+import asyncio
 from app.db.session import get_session
 from app.db.models import  Order , OrderItem , ShippingAddress
 from app.schemas.order import OrderCreate ,OrderItemRead , OrderRead
@@ -10,11 +11,12 @@ from typing import Annotated, Union
 from app.api.deps import role_check
 from app.kafka.producer import kafka_producer
 from app.proto import order_pb2
+from app.kafka.handlers import payment_info_store
 router = APIRouter()
 
 
 # Create Order with Shipping Address and Order Items
-@router.post("/", response_model=OrderRead, status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_order(order: OrderCreate, db: Session = Depends(get_session), current_user: Annotated[Union[TokenResponse, None], Depends(role_check(['customer', 'admin']))] = None):
     try:
         # Create shipping address
@@ -66,6 +68,40 @@ async def create_order(order: OrderCreate, db: Session = Depends(get_session), c
         db.commit()
 
        # Send Kafka message to payment service
+    #    # Create an Order message
+    #     order_message = order_pb2.Order(
+    #         order_id=db_order.id,
+    #         customer_email=db_order.customer_email,
+    #         total_amount=db_order.total_amount
+    #     )
+
+    #     # Add items to the order
+    #     for item in db_order_items:
+    #         order_item = order_pb2.OrderItem(
+    #             product_id=item.product_id,
+    #             title=item.title,
+    #             quantity=item.quantity,
+    #             price=item.item_price
+    #         )
+    #         order_message.items.append(order_item)
+
+    #     # Serialize the message to send it via Kafka
+    #     serialized_order_message = order_message.SerializeToString()
+    #     await kafka_producer.send("payment_request_topic", key=str(db_order.id).encode(), value=serialized_order_message)
+        res = await order_payment(db_order, db_order_items)
+        return res
+    except IntegrityError as e:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Order creation failed")
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    
+
+
+# Function to fetch user info via Kafka
+async def order_payment(db_order, db_order_items):
+#      # Send Kafka message to payment service
        # Create an Order message
         order_message = order_pb2.Order(
             order_id=db_order.id,
@@ -86,11 +122,13 @@ async def create_order(order: OrderCreate, db: Session = Depends(get_session), c
         # Serialize the message to send it via Kafka
         serialized_order_message = order_message.SerializeToString()
         await kafka_producer.send("payment_request_topic", key=str(db_order.id).encode(), value=serialized_order_message)
-        return db_order
-    except IntegrityError as e:
-        db.rollback()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Order creation failed")
-    except SQLAlchemyError as e:
-        db.rollback()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+   
+
+    # Wait for user info to be available in user_info_store
+        for _ in range(15):  # Retry 10 times with a delay
+            if db_order.id in payment_info_store:
+                return payment_info_store.pop(db_order.id)
+            await asyncio.sleep(0.5)  # Wait for 0.5 second before retrying
+
+        raise HTTPException(status_code=404, detail="Order not found")
 

@@ -1,5 +1,6 @@
 from app.proto import user_pb2
 from app.proto import token_validation_pb2
+from app.proto.payment_pb2 import PaymentResponse
 import logging
 
 
@@ -8,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 user_info_store = {}
 token_response_store = {}
+payment_info_store={}
 
 # validate token response consumer 
 async def handle_validate_token_responses(msg):
@@ -72,6 +74,27 @@ async def handle_user_response(msg):
         logger.error(f"Error processing user response message: {e}")
         logger.debug(f"Failed message details: {msg}")
 
+
+async def handle_payment_response(msg):
+    try:
+        logger.info("Handle Payment Response")
+        payment_message = PaymentResponse()
+        payment_message.ParseFromString(msg.value)
+        logger.debug(f"Parsed payment message: {payment_message}")
+        
+  
+        payment_info_store[payment_message.order_id] = {
+            "order_id": payment_message.order_id,
+            "payment_url": payment_message.payment_url,
+            "session_id": payment_message.session_id,
+            "status": payment_message.status
+        }
+        
+        logger.info(f"Processed payment response message: {payment_info_store[payment_message.order_id]}")
+    
+    except Exception as e:
+        logger.error(f"Error processing payment response message: {e}")
+        logger.debug(f"Failed message details: {msg}")
 
 # async def handle_product_event(msg):
 #     product_message = product_pb2.Product()
